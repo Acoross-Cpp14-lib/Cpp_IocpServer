@@ -114,7 +114,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClInclude Include="IOCP.h" />
+    <ClInclude Include="listener.h" />
+    <ClInclude Include="Network.h" />
+    <ClInclude Include="NetworkDefault.h" />
     <ClInclude Include="Socket.h">
       <FileType>CppCode</FileType>
     </ClInclude>

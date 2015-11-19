@@ -3,9 +3,8 @@
 #ifndef _SOCKET_H_
 #define _SOCKET_H_
 
-#include <WinSock2.h>
-#include <Windows.h>
-#include <ws2tcpip.h>
+#include "NetworkDefault.h"
+
 #include <utility>
 #include <list>
 #include <mutex>
@@ -18,24 +17,60 @@ using Acoross::Async::CIOObject;
 using Acoross::Async::CIOCP;
 using Acoross::Log;
 
-void CALLBACK dummy_overlap_callback(
-	IN DWORD dwError,
-	IN DWORD cbTransferred,
-	IN LPWSAOVERLAPPED lpOverlapped,
-	IN DWORD dwFlags
-	)
-{
-	Log.Add(L"dummy callback\n");
-}
+//void CALLBACK dummy_overlap_callback(
+//	IN DWORD dwError,
+//	IN DWORD cbTransferred,
+//	IN LPWSAOVERLAPPED lpOverlapped,
+//	IN DWORD dwFlags
+//	)
+//{
+//	Log.Add(L"dummy callback\n");
+//}
 
 namespace Acoross {
 namespace Network
-{
-	class CSocket : public CIOObject
+{	
+	/*CSocket
+		@ listen 을 통해 생성된 소켓.
+		@ role: 생성, 소멸?
+				비록 accept 는 외부에서 되지만, closesocket 은 CSocket 에서 처리한다.
+	*/
+	class CSocket
 	{
 	public:
-		NO_COPY(CSocket)
-			CSocket(SOCKET sock, sockaddr_in addr, std::weak_ptr<CIOCP<8>> iocpWP)
+		NO_COPY(CSocket);
+
+		CSocket(SOCKET sock) 
+			: socket(sock)
+		{
+		}
+
+		~CSocket()
+		{
+			Close();	// 명시적으로 할 수 있으며, 소멸자에서 될 수도 있다.
+		}
+
+		void Close()
+		{
+			if (socket != INVALID_SOCKET)
+			{
+				closesocket(socket);
+				socket = INVALID_SOCKET;
+			}
+		}
+
+	private:
+		SOCKET socket;
+	};
+
+	// 아래 클래스는 버린다.
+	// 일단 참고를 위해 남겨놓는다.
+	class CSocketDeprecated : public CIOObject
+	{
+	public:
+		NO_COPY(CSocketDeprecated);
+
+		CSocketDeprecated(SOCKET sock, sockaddr_in addr, std::weak_ptr<CIOCP<8>> iocpWP)
 			: clientSocket(sock), cliaddr(addr), IOCPWP(iocpWP)
 		{
 			char buf[46] = { 0, };
@@ -45,7 +80,7 @@ namespace Network
 			_OnConnected();
 		}
 
-		~CSocket()
+		~CSocketDeprecated()
 		{	
 			Close();
 		}
@@ -68,7 +103,27 @@ namespace Network
 		{
 			Log.Add(L"OnIOCallback\n");
 			
+			Read();
+
 			return true;
+		}
+
+		void Read()
+		{
+			WSABUF wsabuf;
+			wsabuf.buf = m_buffer;
+			wsabuf.len = BUFLEN;
+			DWORD dwNumOfByteReceived = 0;
+			DWORD flag = 0;
+			if (WSARecv(clientSocket, &wsabuf, 1, &dwNumOfByteReceived, &flag, &m_overlap, NULL) == SOCKET_ERROR)
+			{
+				int err = WSAGetLastError();
+				if (WSA_IO_PENDING != err)
+				{
+					Log.Add(L"WSARecv failed with error: %d\n", err);
+					Close();
+				}
+			}
 		}
 
 	private:
@@ -78,39 +133,21 @@ namespace Network
 			{
 				if (!iocpSP->ConnectDeviceToIOCP((HANDLE)clientSocket, (ULONG_PTR)this))
 				{
-					closesocket(clientSocket);
-					clientSocket = INVALID_SOCKET;
+					Close();
 				}
 			}
-/*
-			if (send(clientSocket, "hahaha", 6, 0) == SOCKET_ERROR)
-			{
-				Log.Add(L"send failed with error: %d\n", WSAGetLastError());
-				closesocket(clientSocket);
-				clientSocket = INVALID_SOCKET;
-			}
-*/
-			m_wsabuf.buf = new char[1000]{ 0, };
-			m_wsabuf.len = 1000;
-			DWORD dwNumOfByteReceived = 0;
-			DWORD flag= 0;
-			if (WSARecv(clientSocket, &m_wsabuf, 1, &dwNumOfByteReceived, &flag, &m_overlap, NULL) == SOCKET_ERROR)
-			{
-				int err = WSAGetLastError();
-				if (WSA_IO_PENDING != err)
-				{
-					Log.Add(L"WSARecv failed with error: %d\n", err);
-					closesocket(clientSocket);
-					clientSocket = INVALID_SOCKET;
-				}
-			}
+
+			Read();
 		}
 
 		std::mutex sockLock;	// lock for CSocket
 		SOCKET clientSocket{ NULL };
 		sockaddr_in cliaddr;
+
 		std::weak_ptr<CIOCP<8>> IOCPWP;
-		WSABUF m_wsabuf;
+		
+		constexpr static int BUFLEN{ 1000 };
+		char m_buffer[BUFLEN]{ 0, };
 		WSAOVERLAPPED m_overlap;
 	};//CSocket
 }//Network

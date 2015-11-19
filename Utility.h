@@ -7,11 +7,30 @@
 
 #define NO_COPY(T) \
 	T(T&) = delete;\
-	T(T&&) = delete;\
 	T& operator=(T&) = delete;\
-	T& operator=(T&&) = delete;
 
 namespace Acoross {
+		
+	template <class T>
+	class AutoLocker
+		: protected T
+	{
+	public:
+		template<class... Args>
+		AutoLocker(Args&&... args) : T(std::forward<Args>(args)...)
+		{}
+
+		template <class F>
+		auto LockedProcess(F func)
+		{
+			GuardLock gLock(m_lock);
+			return func((T&)(*this));
+		}
+
+	private:
+		std::mutex m_lock;
+	};
+
 	class CLog
 	{
 	public:

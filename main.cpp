@@ -1,15 +1,14 @@
 #include <iostream>
 
 #include "Utility.h"
-#include "Server.h"
-#include "Socket.h"
+#include "Network.h"
 #include "IOCP.h"
 
 using namespace Acoross;
 using Acoross::Async::CIOCP;
-using Acoross::Network::CServer;
-using Acoross::Network::CSocket;
+using namespace Acoross::Network;
 using Acoross::Async::CIOObject;
+
 CLog Acoross::Log;
 
 using Acoross::Async::CIOThreadControlBlock;
@@ -45,25 +44,25 @@ bool IOThreadFunc(CIOThreadControlBlock* pThreadBlock)
 
 int main(int argc, char* argv[])
 {
-	/////////////////
-	// IOCP
-	auto pIOCP = std::make_shared<CIOCP<8>>();
-	if (!pIOCP->CreateIOCP())
-	{	
-		return 1;
-	}
-	else
-	{
-		if (!pIOCP->BeginIOThreadPool(IOThreadFunc))
-		{
-			pIOCP->Clear();
-			return 1;
-		}
-		//else
-		{
+	///////////////////
+	//// IOCP
+	//auto pIOCP = std::make_shared<CIOCP<8>>();
+	//if (!pIOCP->CreateIOCP())
+	//{	
+	//	return 1;
+	//}
+	//else
+	//{
+	//	if (!pIOCP->BeginIOThreadPool(IOThreadFunc))
+	//	{
+	//		pIOCP->Clear();
+	//		return 1;
+	//	}
+	//	//else
+	//	{
 
-		}
-	}
+	//	}
+	//}
 	
 	/////////////////
 	// Server
@@ -73,19 +72,12 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		CServer<CSocket> server(
-			[iocpWP = (std::weak_ptr<CIOCP<8>>)pIOCP](SOCKET sock, sockaddr_in addr)->std::unique_ptr<CSocket>
-		{
-			return std::make_unique<CSocket>(sock, addr, iocpWP);
-		});
-
-		server.ListenStart();
-		server.AcceptLoop();
-		
+		CServer server;
+		server.Run();
 		Network::Cleanup();
 	}
 
-	pIOCP->Clear();
+	//pIOCP->Clear();
 
 	return 0;
 }
