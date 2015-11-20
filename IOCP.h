@@ -39,7 +39,8 @@ namespace Async
 	class CIOObject
 	{
 	public:
-		virtual bool OnIOCallback() = 0;
+		virtual bool OnIOCallback(DWORD dwTransferred, LPOVERLAPPED lpOverlapped) = 0;
+		virtual ~CIOObject() {}
 	};
 
 	template<size_t count>

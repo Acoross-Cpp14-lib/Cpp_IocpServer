@@ -11,37 +11,6 @@ using Acoross::Async::CIOObject;
 
 CLog Acoross::Log;
 
-using Acoross::Async::CIOThreadControlBlock;
-bool IOThreadFunc(CIOThreadControlBlock* pThreadBlock)
-{
-	if (nullptr == pThreadBlock)
-	{
-		return false;
-	}
-
-	const HANDLE hIOCP = pThreadBlock->hIOCP;
-
-	while (!pThreadBlock->bStop)
-	{
-		DWORD dwTransferred = 0;
-		CIOObject* pObject = nullptr;
-		//unsigned long key = 0;
-		WSAOVERLAPPED* pOverlap = nullptr;
-		if (GetQueuedCompletionStatus(hIOCP, &dwTransferred, (PULONG_PTR)&pObject, &pOverlap, INFINITE))
-		{
-			pObject->OnIOCallback();
-			continue;
-		}
-		else
-		{
-			Log.Add(L"GetQueuedCompletionStatus failed:%d\n", GetLastError());
-			break;
-		}
-	}
-
-	return true;
-}
-
 int main(int argc, char* argv[])
 {
 	///////////////////

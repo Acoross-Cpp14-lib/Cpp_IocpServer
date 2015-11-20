@@ -35,87 +35,31 @@ namespace Network
 		@ role: 생성, 소멸?
 				비록 accept 는 외부에서 되지만, closesocket 은 CSocket 에서 처리한다.
 	*/
-	class CSocket
+	class CAsyncSocket : public CIOObject
 	{
 	public:
-		NO_COPY(CSocket);
+		NO_COPY(CAsyncSocket);
 
-		CSocket(SOCKET sock) 
+		CAsyncSocket(SOCKET sock) 
 			: socket(sock)
 		{
+			memset(&m_overlap, 0, sizeof(OVERLAPPED));
 		}
 
-		~CSocket()
+		virtual ~CAsyncSocket()
 		{
 			Close();	// 명시적으로 할 수 있으며, 소멸자에서 될 수도 있다.
+			Log.Add(L"CAsyncSocket dtor()\n");
 		}
-
-		void Close()
-		{
-			if (socket != INVALID_SOCKET)
-			{
-				closesocket(socket);
-				socket = INVALID_SOCKET;
-			}
-		}
-
-	private:
-		SOCKET socket;
-	};
-
-	// 아래 클래스는 버린다.
-	// 일단 참고를 위해 남겨놓는다.
-	class CSocketDeprecated : public CIOObject
-	{
-	public:
-		NO_COPY(CSocketDeprecated);
-
-		CSocketDeprecated(SOCKET sock, sockaddr_in addr, std::weak_ptr<CIOCP<8>> iocpWP)
-			: clientSocket(sock), cliaddr(addr), IOCPWP(iocpWP)
-		{
-			char buf[46] = { 0, };
-			InetNtop(AF_INET, &cliaddr.sin_addr, buf, 46);
-			Log.Add(L"client %S accepted\n", buf);
-
-			_OnConnected();
-		}
-
-		~CSocketDeprecated()
-		{	
-			Close();
-		}
-
-		void Close()
-		{
-			GuardLock Lock(sockLock);
-			if (clientSocket != INVALID_SOCKET)
-			{
-				closesocket(clientSocket);
-				clientSocket = INVALID_SOCKET;
-			}
-
-			char buf[46] = { 0, };
-			InetNtop(AF_INET, &cliaddr.sin_addr, buf, 46);
-			Log.Add(L"client %S closed\n", buf);
-		}
-
-		virtual bool OnIOCallback() override
-		{
-			Log.Add(L"OnIOCallback\n");
-			
-			Read();
-
-			return true;
-		}
-
-		void Read()
+		
+		void AsyncRecv()
 		{
 			WSABUF wsabuf;
 			wsabuf.buf = m_buffer;
 			wsabuf.len = BUFLEN;
 			DWORD dwNumOfByteReceived = 0;
 			DWORD flag = 0;
-			if (WSARecv(clientSocket, &wsabuf, 1, &dwNumOfByteReceived, &flag, &m_overlap, NULL) == SOCKET_ERROR)
+			if (WSARecv(socket, &wsabuf, 1, &dwNumOfByteReceived, &flag, &m_overlap, NULL) == SOCKET_ERROR)
 			{
 				int err = WSAGetLastError();
 				if (WSA_IO_PENDING != err)
@@ -126,30 +70,50 @@ namespace Network
 			}
 		}
 
-	private:
-		void _OnConnected()
+		virtual bool OnIOCallback(DWORD dwTransferred, LPOVERLAPPED lpOverlapped) override
 		{
-			if (auto iocpSP = IOCPWP.lock())
+			if (false == OnRecvCallback(dwTransferred, lpOverlapped))
 			{
-				if (!iocpSP->ConnectDeviceToIOCP((HANDLE)clientSocket, (ULONG_PTR)this))
-				{
-					Close();
-				}
+				return false;
 			}
 
-			Read();
+			return true;
+		}
+		
+		void Close()
+		{
+			if (socket != INVALID_SOCKET)
+			{
+				closesocket(socket);
+				socket = INVALID_SOCKET;
+				Log.Add(L"socket closed.\n");
+			}
 		}
 
-		std::mutex sockLock;	// lock for CSocket
-		SOCKET clientSocket{ NULL };
-		sockaddr_in cliaddr;
+	private:
+		bool OnRecvCallback(DWORD dwTransferred, LPOVERLAPPED lpOverlapped)
+		{
+			if (dwTransferred == 0)
+				return false;
 
-		std::weak_ptr<CIOCP<8>> IOCPWP;
-		
+			char prnBuf[100]{ '\0', };
+			if (0 == memmove_s(prnBuf, sizeof(prnBuf), m_buffer, dwTransferred)) // 0: success
+			{
+				Log.Add(prnBuf);
+			}
+
+			AsyncRecv();
+
+			return true;
+		}
+
+	private:
+		SOCKET socket;
+
 		constexpr static int BUFLEN{ 1000 };
 		char m_buffer[BUFLEN]{ 0, };
 		WSAOVERLAPPED m_overlap;
-	};//CSocket
+	};
 }//Network
 }//Acoross
 
