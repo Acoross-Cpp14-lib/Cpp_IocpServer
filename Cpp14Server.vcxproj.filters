@@ -19,6 +19,9 @@
     <Filter Include="Utility">
       <UniqueIdentifier>{2a736786-9592-4c81-9098-2f3ae371541a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MemoryManager">
+      <UniqueIdentifier>{16422716-e280-4f4a-9515-a625ef0a0288}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -26,6 +29,12 @@
     </ClCompile>
     <ClCompile Include="Server.cpp">
       <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager.cpp">
+      <Filter>MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +58,9 @@
     </ClInclude>
     <ClInclude Include="NetworkDefault.h">
       <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager.h">
+      <Filter>MemoryManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
