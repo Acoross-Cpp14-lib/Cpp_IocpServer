@@ -114,7 +114,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Network.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClInclude Include="AsyncSocket.h" />
     <ClInclude Include="IOCP.h" />
     <ClInclude Include="listener.h" />
     <ClInclude Include="Network.h" />

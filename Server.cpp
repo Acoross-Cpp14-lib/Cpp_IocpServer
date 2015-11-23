@@ -1,17 +1,15 @@
 #include "Server.h"
-
 #include "NetworkDefault.h"
 
+#include <Windows.h>
 #include <utility>
 #include <functional>
 
 #include "Utility.h"
 #include "listener.h"
-#include "Socket.h"
+#include "AsyncSocket.h"
 
-namespace Acoross{
-namespace Network
-{
+using namespace Acoross::Network::Async;
 
 using Acoross::Async::CIOThreadControlBlock;
 bool IOThreadFunc(CIOThreadControlBlock* pThreadBlock)
@@ -31,7 +29,7 @@ bool IOThreadFunc(CIOThreadControlBlock* pThreadBlock)
 		WSAOVERLAPPED* pOverlap = nullptr;
 		if (GetQueuedCompletionStatus(hIOCP, &dwTransferred, (PULONG_PTR)&pObject, &pOverlap, INFINITE))
 		{
-			if (false == pObject->OnIOCallback(dwTransferred, pOverlap))
+			if (pObject && false == pObject->OnIOCallback(dwTransferred, pOverlap))
 			{
 				delete pObject;
 			}
@@ -41,38 +39,27 @@ bool IOThreadFunc(CIOThreadControlBlock* pThreadBlock)
 		else
 		{
 			Log.Add(L"GetQueuedCompletionStatus failed:%d\n", GetLastError());
-			break;
+			if (pObject && false == pObject->OnIOCallback(dwTransferred, pOverlap))
+			{
+				delete pObject;
+			}
+
+			continue;
 		}
 	}
 
 	return true;
 }
-
-// initialize Winsock
-bool Init()
-{
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR)
-	{
-		Log.Add(L"error!");
-		WSACleanup();
-		return false;
-	}
-	return true;
-}
-
-void Cleanup()
-{
-	WSACleanup();
-}
-
+			
 void CServer::Run()
 {
+	using Acoross::Network::CSocketListener;
+
 	/////////////////
 	// IOCP
 	auto pIOCP = std::make_shared<CIOCP<8>>();
 	if (!pIOCP->CreateIOCP())
-	{	
+	{
 		return;
 	}
 	else
@@ -91,23 +78,26 @@ void CServer::Run()
 	CSocketListener listner(7777);
 	listner.ListenStart();
 
+	/////////////////////////////////
+	// accept
 	while (true)
 	{
-		listner.Accept([pIOCP](SOCKET sock, sockaddr_in addr)
+		bool ret = 
+			listner.Accept([pIOCP](SOCKET sock, sockaddr_in addr)
 		{
 			const char *ip = inet_ntoa(addr.sin_addr);
 			Log.Add(L"client connected: %S\n", ip);
 
 			auto* sockObj = new CAsyncSocket(sock);
-			pIOCP->ConnectDeviceToIOCP((HANDLE)sock, (ULONG_PTR)sockObj);
+			sockObj->ConnectToIOCP(*pIOCP);
+
 			sockObj->AsyncRecv();
 		});
+
+		if (!ret)
+			break;
 	}
 
 	listner.Close();
 }
-
-}//Network
-}//Acoross
-	
 

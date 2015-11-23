@@ -1,7 +1,7 @@
-#pragma once
-
 #ifndef _IOCP_H_
 #define _IOCP_H_
+
+#pragma once
 
 #include <Windows.h>
 #include <array>
@@ -42,7 +42,7 @@ namespace Async
 		virtual bool OnIOCallback(DWORD dwTransferred, LPOVERLAPPED lpOverlapped) = 0;
 		virtual ~CIOObject() {}
 	};
-
+	
 	template<size_t count>
 	class CIOCP
 	{

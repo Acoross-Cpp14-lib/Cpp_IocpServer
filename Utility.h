@@ -1,9 +1,9 @@
+#ifndef _UTILITY_H_
+#define _UTILITY_H_
+
 #pragma once
 
 #include <mutex>
-
-#ifndef _UTILITY_H_
-#define _UTILITY_H_
 
 #define NO_COPY(T) \
 	T(T&) = delete;\
@@ -59,21 +59,63 @@ namespace Acoross {
 
 	extern CLog Log;
 
-	class GuardLock
+
+	template<class T>
+	class locker
 	{
+		class locked;
+
 	public:
-		GuardLock(std::mutex& Lock)
+		locker(T&& Obj)
+			: m_Obj(std::move(Obj))
 		{
-			pLock = &Lock;
-			pLock->lock();
 		}
-		~GuardLock()
+
+		locker(locker&& rhs)
+			: m_Obj(std::move(rhs.m_Obj)), lock(std::move(rhs.lock))
 		{
-			pLock->unlock();
 		}
+
+		locked operator->()
+		{
+			return Locked(&m_Obj, &lock);
+		}
+
 	private:
-		std::mutex* pLock;
+		T m_Obj;
+		std::mutex lock;
+
+		class locked
+		{
+		public:
+			locked(T* pObj, std::mutex* pLock)
+				: m_pObj(pObj), m_pLock(pLock)
+			{
+				m_pLock->lock();
+			}
+
+			~locked()
+			{
+				m_pLock->unlock();
+			}
+
+			T* operator->()
+			{
+				return m_pObj;
+			}
+
+		private:
+			T* m_pObj;
+			std::mutex* m_pLock;
+		};
 	};
+
+	template<class T, class... Args>
+	locker<T> make_locker(Args&&... args)
+	{
+		return locker<T>(T(std::forward<Args>(args)...));
+	}
+
 }//Acoross
 
 #endif //_UTILITY_H_
