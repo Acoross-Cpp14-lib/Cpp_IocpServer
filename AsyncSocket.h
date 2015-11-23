@@ -16,7 +16,7 @@ namespace Acoross {
 			using Acoross::Network::CSocket;
 			using Acoross::Network::CPacketReceiver;
 			
-			class CPacketHandler
+			class DummyPacketHandler
 			{
 			public:
 				bool operator()(const char* pBuf, size_t nLen)
@@ -41,7 +41,7 @@ namespace Acoross {
 				NO_COPY(CAsyncSocket);
 
 				CAsyncSocket(SOCKET sock)
-					: m_RecvSocket(sock, CPacketReceiver(CPacketHandler()))
+					: m_RecvSocket(sock, CPacketReceiver(DummyPacketHandler()))
 				{
 					memset(&m_RecvOverlapped, 0, sizeof(OVERLAPPED));
 				}
@@ -64,7 +64,7 @@ namespace Acoross {
 				{
 					if (&m_RecvOverlapped == lpOverlapped)
 					{
-						return m_RecvSocket.ProcessReceived(dwTransferred, lpOverlapped);
+						return m_RecvSocket.ProcessReceived(dwTransferred, &m_RecvOverlapped);
 					}
 					return false;
 				}

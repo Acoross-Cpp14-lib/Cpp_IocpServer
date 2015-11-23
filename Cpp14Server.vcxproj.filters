@@ -19,15 +19,6 @@
     <Filter Include="Utility">
       <UniqueIdentifier>{2a736786-9592-4c81-9098-2f3ae371541a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IOCP">
-      <UniqueIdentifier>{fe448cd5-7103-4ae6-b715-a9bcda50e97d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="AsyncSocket">
-      <UniqueIdentifier>{37c50c10-4be8-4291-8a98-4779157db5ae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MemoryManager">
-      <UniqueIdentifier>{2e7b1d24-bcd0-45e1-94fc-e840e04fb98f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -61,18 +52,6 @@
     </ClInclude>
     <ClInclude Include="NetworkDefault.h">
       <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="IOCP.h">
-      <Filter>IOCP</Filter>
-    </ClInclude>
-    <ClInclude Include="AsyncSocket.h">
-      <Filter>AsyncSocket</Filter>
-    </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>AsyncSocket</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryManager.h">
-      <Filter>MemoryManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

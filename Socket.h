@@ -211,7 +211,7 @@ namespace Network
 			}
 
 			pReadBuffer->nRemain += (dwTransferred - ret);
-			RequestRecv();
+			RequestRecv(lpOverlapped);
 			return true;
 		}
 
