@@ -25,6 +25,9 @@
     <Filter Include="AsyncSocket">
       <UniqueIdentifier>{37c50c10-4be8-4291-8a98-4779157db5ae}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MemoryManager">
+      <UniqueIdentifier>{2e7b1d24-bcd0-45e1-94fc-e840e04fb98f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,6 +38,12 @@
     </ClCompile>
     <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager.cpp">
+      <Filter>MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="Server.h">
       <Filter>AsyncSocket</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager.h">
+      <Filter>MemoryManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
 #include <iostream>
+#include <new>
+#include <vector>
 
 #include "Utility.h"
 #include "Network.h"
@@ -6,8 +8,6 @@
 #include "Server.h"
 
 using namespace Acoross;
-
-Acoross::CLog Acoross::Log;
 
 int main(int argc, char* argv[])
 {	

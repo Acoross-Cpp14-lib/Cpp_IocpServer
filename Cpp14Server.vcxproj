@@ -113,12 +113,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClInclude Include="AsyncSocket.h" />
     <ClInclude Include="IOCP.h" />
     <ClInclude Include="listener.h" />
+    <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="NetworkDefault.h" />
     <ClInclude Include="Socket.h">
