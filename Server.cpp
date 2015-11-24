@@ -53,7 +53,7 @@ bool IOThreadFunc(CIOThreadControlBlock* pThreadBlock)
 			
 void CServer::Run()
 {
-	using Acoross::Network::CSocketListener;
+	using Acoross::Network::Acceptor;
 
 	/////////////////
 	// IOCP
@@ -75,7 +75,7 @@ void CServer::Run()
 		}
 	}
 
-	CSocketListener listner(7777);
+	Acceptor listner(7777);
 	listner.ListenStart();
 
 	/////////////////////////////////

@@ -11,8 +11,6 @@ using namespace Acoross;
 
 int main(int argc, char* argv[])
 {	
-	/////////////////
-	// Server
 	if (!Network::Init())
 	{
 		return 1;
@@ -24,6 +22,8 @@ int main(int argc, char* argv[])
 
 		Network::Cleanup();
 	}
+
+
 
 	return 0;
 }

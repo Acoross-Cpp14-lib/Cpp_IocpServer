@@ -16,21 +16,21 @@ namespace Acoross {
 		using AcceptEventFuncT = void(SOCKET, sockaddr_in);
 		using AcceptEventHandler = std::function<AcceptEventFuncT>;
 
-		/* CSocketListener
+		/* Acceptor
 		@ thread: single thread
 		@ role: start listen, accept, close
 		*/
-		class CSocketListener
+		class Acceptor
 		{
 		public:
-			NO_COPY(CSocketListener);
+			NO_COPY(Acceptor);
 
 			// SocketCreator 이 template 인자라서 sockCrt 는 universal reference 임.
-			CSocketListener(int port) : m_port(port)
+			Acceptor(int port) : m_port(port)
 			{
 			}
 
-			CSocketListener(CSocketListener&& rhs)
+			Acceptor(Acceptor&& rhs)
 				: m_port(rhs.m_port), listenSocket(rhs.listenSocket)
 			{
 			}
